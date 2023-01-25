@@ -181,7 +181,17 @@ describe("shared server runtime", () => {
         return "root";
       });
       let resourceLoader = jest.fn(() => {
-        throw new Response("resource");
+        let res = new Response("resource");
+
+        // On Cloudflare, the response will be immutable, so a
+        // `X-Remix-Catch` cannot be added directly. To ensure Cloudflare
+        // compatibility, the internal state of this response's headers
+        // is froozen.
+        for (const sym of Object.getOwnPropertySymbols(res.headers)) {
+          Object.freeze(res.headers[sym]);
+        }
+
+        throw res;
       });
       let build = mockServerBuild({
         root: {
@@ -518,7 +528,17 @@ describe("shared server runtime", () => {
 
     test("data request calls loader and responds with catch header", async () => {
       let rootLoader = jest.fn(() => {
-        throw new Response("test", { status: 400 });
+        let res = new Response("test", { status: 400 });
+
+        // On Cloudflare, the response will be immutable, so a
+        // `X-Remix-Catch` cannot be added directly. To ensure Cloudflare
+        // compatibility, the internal state of this response's headers
+        // is froozen.
+        for (const sym of Object.getOwnPropertySymbols(res.headers)) {
+          Object.freeze(res.headers[sym]);
+        }
+
+        throw res;
       });
       let testAction = jest.fn(() => {
         return "root";

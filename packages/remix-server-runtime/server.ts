@@ -168,8 +168,13 @@ async function handleDataRequestRR(
     return response;
   } catch (error: unknown) {
     if (isResponse(error)) {
-      error.headers.set("X-Remix-Catch", "yes");
-      return error;
+      let headers = new Headers(error.headers);
+      headers.set("X-Remix-Catch", "yes");
+      return new Response(error.body, {
+        status: error.status,
+        statusText: error.statusText,
+        headers,
+      });
     }
 
     let status = 500;
@@ -364,8 +369,14 @@ async function handleResourceRequestRR(
     if (isResponse(error)) {
       // Note: Not functionally required but ensures that our response headers
       // match identically to what Remix returns
-      error.headers.set("X-Remix-Catch", "yes");
-      return error;
+
+      let headers = new Headers(error.headers);
+      headers.set("X-Remix-Catch", "yes");
+      return new Response(error.body, {
+        status: error.status,
+        statusText: error.statusText,
+        headers,
+      });
     }
     return returnLastResortErrorResponse(error, serverMode);
   }
